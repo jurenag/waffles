@@ -41,9 +41,14 @@ def WaveformSet_from_ROOT_file( filepath : str,
         'bulk_data_tree_name' parameter - the bulk data tree - 
         and the other one starts with the string given to the 
         'meta_data_tree_name' parameter - the meta data tree.
-            The meta data TTree must have at least one branch, 
-        whose name starts with 'run', from which the value for 
-        the Waveform objects attribute RunNumber will be taken.
+            The meta data TTree must have at least two branches, 
+        whose names start with 
+        
+            - 'run' 
+            - 'ticks_to_nsec' 
+            
+        from which the values for the Waveform objects attributes 
+        RunNumber and TimeStep_ns will be taken respectively.
             The bulk data TTree must have at least five branches,
         whose names should start with
 
@@ -66,8 +71,9 @@ def WaveformSet_from_ROOT_file( filepath : str,
         types of the branches in the meta-data tree are the
         following ones:
 
-            - 'run'             : 'i', i.e. a 32 bit unsigned integer,
-        
+            - 'run'             : 'i', i.e. a 32 bit unsigned integer
+            - 'ticks_to_nsec'   : 'F', i.e. a 32 bit floating point
+    
         while the types of the branches in the bulk-data tree 
         should be:
 
