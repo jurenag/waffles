@@ -419,8 +419,8 @@ def __build_waveforms_list_from_ROOT_file_using_uproot( idcs_to_retrieve : np.nd
                                                 'uproot')
 
     channel_branch, _ = find_TBranch_in_ROOT_TTree( bulk_data_tree,
-                                                                'channel',
-                                                                'uproot')
+                                                    'channel',
+                                                    'uproot')
         
     timestamp_branch, _ = find_TBranch_in_ROOT_TTree(   bulk_data_tree,
                                                         'timestamp',
@@ -429,7 +429,7 @@ def __build_waveforms_list_from_ROOT_file_using_uproot( idcs_to_retrieve : np.nd
     record_branch, _ = find_TBranch_in_ROOT_TTree(  bulk_data_tree,
                                                     'record',
                                                     'uproot')
-
+    
     waveforms = []                      # Using a list comprehension here is slightly slower than a for loop
                                         # (97s vs 102s for 5% of wvfs of a 809 MB file running on lxplus9)
 
