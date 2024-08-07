@@ -1,3 +1,4 @@
+import os
 import array
 import numpy as np
 import uproot
@@ -786,3 +787,26 @@ def __read_metadata_from_ROOT_file_using_pyroot(meta_data_tree : ROOT.TTree) -> 
     meta_data_tree.ResetBranchAddresses()
 
     return (run, ticks_to_nsec,)
+
+def filepath_is_ROOT_file_candidate(filepath : str) -> bool:
+
+    """
+    This function returns True if the given file path points
+    to a file which exists and whose extension is '.root'. It
+    returns False if else.
+
+    Parameters
+    ----------
+    filepath : str
+        The file path to be checked.
+
+    Returns
+    ----------
+    bool
+    """
+
+    if os.path.isfile(filepath):
+        if filepath.endswith('.root'):
+            return True
+    
+    return False
