@@ -340,12 +340,12 @@ def __build_waveforms_list_from_ROOT_file_using_uproot( idcs_to_retrieve : np.nd
     
     """
     This is a helper function which must only be called by the 
-    from_ROOT_file() function. This function reads a subset of 
-    waveforms from the given uproot.TTree and appends them one 
-    by one to a list of Waveform objects, which is finally 
-    returned by this function. When the uproot library is 
-    specified, from_ROOT_file() delegates such task to this 
-    helper function.
+    WaveformSet_from_ROOT_file() function. This function reads 
+    a subset of waveforms from the given uproot.TTree and appends 
+    them one by one to a list of Waveform objects, which is 
+    finally returned by this function. When the uproot library 
+    is specified, WaveformSet_from_ROOT_file() delegates such 
+    task to this helper function.
 
     Parameters
     ----------
@@ -374,8 +374,8 @@ def __build_waveforms_list_from_ROOT_file_using_uproot( idcs_to_retrieve : np.nd
     first_wf_index : int
         The index of the first waveform of the chunk in
         the bulk data, which can be potentially read. 
-        from_ROOT_file() calculates this value based on 
-        its 'start_fraction' input parameter.
+        WaveformSet_from_ROOT_file() calculates this 
+        value based on its 'start_fraction' input parameter.
     verbose : bool
         If True, then functioning-related messages will be
         printed.
@@ -529,12 +529,12 @@ def __build_waveforms_list_from_ROOT_file_using_pyroot( idcs_to_retrieve : np.nd
     
     """
     This is a helper function which must only be called by 
-    the from_ROOT_file() function. This function reads a 
-    subset of waveforms from the given ROOT.TTree and 
-    appends them one by one to a list of Waveform objects, 
+    the WaveformSet_from_ROOT_file() function. This function 
+    reads a subset of waveforms from the given ROOT.TTree 
+    and appends them one by one to a list of Waveform objects,
     which is finally returned by this function. When the 
-    pyroot library is specified, from_ROOT_file() delegates 
-    such task to this helper function.
+    pyroot library is specified, WaveformSet_from_ROOT_file() 
+    delegates such task to this helper function.
 
     Parameters
     ----------
@@ -565,8 +565,8 @@ def __build_waveforms_list_from_ROOT_file_using_pyroot( idcs_to_retrieve : np.nd
     first_wf_index : int
         The index of the first waveform of the chunk in
         the bulk data, which can be potentially read. 
-        from_ROOT_file() calculates this value based on 
-        its 'start_fraction' input parameter.
+        WaveformSet_from_ROOT_file() calculates this value 
+        based on its 'start_fraction' input parameter.
     subsample : int
         It matches one plus the number of waveforms to be 
         skipped between two consecutive waveforms to be read. 
