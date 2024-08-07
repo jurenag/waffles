@@ -359,7 +359,7 @@ def __build_waveforms_list_from_ROOT_file_using_uproot( idcs_to_retrieve : np.nd
         The tree from which the bulk data (resp. meta data)
         of the waveforms will be read. Branches whose name
         start with 'adcs', 'channel', 'timestamp' and 'record'
-        will be required.
+        (resp. 'run') will be required.
     set_offset_wrt_daq_window : bool
         If True, then the bulk data tree must also have a
         branch whose name starts with 'daq_timestamp'. In
@@ -414,6 +414,8 @@ def __build_waveforms_list_from_ROOT_file_using_uproot( idcs_to_retrieve : np.nd
     # exclusive. Also note that the 'entry_stop' parameter of uproot.TBranch.array()
     # is exclusive.
 
+    meta_data = __read_metadata_from_ROOT_file_using_uproot(meta_data_tree)
+
     adcs_branch, _ = find_TBranch_in_ROOT_TTree(bulk_data_tree,
                                                 'adcs',
                                                 'uproot')
@@ -463,8 +465,7 @@ def __build_waveforms_list_from_ROOT_file_using_uproot( idcs_to_retrieve : np.nd
                                                                     ## it must be implemented from the new
                                                                     ## 'metadata' TTree in the ROOT file
                                             np.array(current_adcs_array[i]),
-                                            0,      # RunNumber     ## To be implemented from the new
-                                                                    ## 'metadata' TTree in the ROOT file
+                                            meta_data[0],
                                             current_record_array[i],
                                             endpoint,
                                             channel,
@@ -504,7 +505,7 @@ def __build_waveforms_list_from_ROOT_file_using_uproot( idcs_to_retrieve : np.nd
                 waveforms.append(Waveform(  current_timestamp_array[i],
                                             16.,    # TimeStep_ns
                                             np.array(current_adcs_array[i]),
-                                            0,      # RunNumber
+                                            meta_data[0],
                                             current_record_array[i],
                                             endpoint,
                                             channel,
@@ -548,9 +549,9 @@ def __build_waveforms_list_from_ROOT_file_using_pyroot( idcs_to_retrieve : np.nd
         The tree from which the bulk data (resp. meta data)
         of the waveforms will be read. Branches whose name
         start with 'adcs', 'channel', 'timestamp' and 'record'
-        will be required. For more information on the expected
-        data types for these branches, check the 
-        from_ROOT_file() function documentation.
+        (resp. 'run') will be required. For more information 
+        on the expected data types for these branches, check 
+        the WaveformSet_from_ROOT_file() function documentation.
     set_offset_wrt_daq_window : bool
         If True, then the bulk data tree must also have a
         branch whose name starts with 'daq_timestamp'. In
@@ -587,6 +588,8 @@ def __build_waveforms_list_from_ROOT_file_using_pyroot( idcs_to_retrieve : np.nd
     waveforms : list of Waveform
     """
 
+    meta_data = __read_metadata_from_ROOT_file_using_pyroot(meta_data_tree)
+    
     _, adcs_branch_exact_name = find_TBranch_in_ROOT_TTree( bulk_data_tree,
                                                             'adcs',
                                                             'pyroot')
@@ -642,8 +645,7 @@ def __build_waveforms_list_from_ROOT_file_using_pyroot( idcs_to_retrieve : np.nd
                                                                 ## it must be implemented from the new
                                                                 ## 'metadata' TTree in the ROOT file
                                         np.array(adcs_address),
-                                        0,      # RunNumber     ## To be implemented from the new
-                                                                ## 'metadata' TTree in the ROOT file
+                                        meta_data[0], 
                                         record_address[0],
                                         endpoint,
                                         channel,
@@ -670,8 +672,7 @@ def __build_waveforms_list_from_ROOT_file_using_pyroot( idcs_to_retrieve : np.nd
             waveforms.append(Waveform(  timestamp_address[0],
                                         16.,    # TimeStep_ns
                                         np.array(adcs_address),
-                                        0,      # RunNumber     ## To be implemented from the new
-                                                                ## 'metadata' TTree in the ROOT file
+                                        meta_data[0],
                                         record_address[0],
                                         endpoint,
                                         channel,
