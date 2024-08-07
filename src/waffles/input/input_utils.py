@@ -688,3 +688,77 @@ def __build_waveforms_list_from_ROOT_file_using_pyroot( idcs_to_retrieve : np.nd
                                             # For more information, check 
                                             # https://root.cern/doc/master/classTTree.html
     return waveforms
+
+def __read_metadata_from_ROOT_file_using_uproot(meta_data_tree : uproot.TTree) -> Tuple[Union[int, float]]:
+
+    """
+    This is a helper function which must only be called by 
+    the __build_waveforms_list_from_ROOT_file_using_uproot()
+    helper function. Such function delegates the task of
+    reading the data in the meta-data tree to this function.
+    This function reads and packs such data into a tuple,
+    which is the returned object.
+    
+    Parameters
+    ----------
+    meta_data_tree : uproot.TTree
+        The tree from which the meta data of the waveforms
+        will be read. A branch whose name start with 'run'      ## For now, only the run number is read. However, this
+        will be required.                                       ## function should serve as the place to encapsulate any
+                                                                ## future reading of meta-data from the ROOT file, when 
+                                                                ## using uproot.
+    Returns
+    ----------
+    output : tuple of ( int, )
+        The first element of the returned tuple is the
+        run number of the data in the ROOT file.
+    """
+
+    run_branch, _ = find_TBranch_in_ROOT_TTree( meta_data_tree,
+                                                'run',
+                                                'uproot')
+    run = int(run_branch.array()[0])
+
+    return (run,)
+
+def __read_metadata_from_ROOT_file_using_pyroot(meta_data_tree : ROOT.TTree) -> Tuple[Union[int, float]]:
+
+    """
+    This is a helper function which must only be called by 
+    the __build_waveforms_list_from_ROOT_file_using_pyroot() 
+    helper function. Such function delegates the task of
+    reading the data in the meta-data tree to this function.
+    This function reads and packs such data into a tuple,
+    which is the returned object.
+    
+    Parameters
+    ----------
+    meta_data_tree : ROOT.TTree
+        The tree from which the meta data of the waveforms
+        will be read. A branch whose name start with 'run'      ## For now, only the run number is read. However, this
+        will be required.                                       ## function should serve as the place to encapsulate any
+                                                                ## future reading of meta-data from the ROOT file, when 
+                                                                ## using pyroot.
+    Returns
+    ----------
+    output : tuple of ( int, )
+        The first element of the returned tuple is the
+        run number of the data in the ROOT file.
+    """
+
+    _, run_branch_exact_name = find_TBranch_in_ROOT_TTree(  meta_data_tree,
+                                                            'run',
+                                                            'pyroot')
+    
+    run_address = array.array(  ROOT_to_array_type_code('i'),
+                                [0])
+    
+    meta_data_tree.SetBranchAddress(run_branch_exact_name,
+                                    run_address)
+    meta_data_tree.GetEntry(0)
+    
+    run = int(run_address[0])
+
+    meta_data_tree.ResetBranchAddresses()
+
+    return (run,)
