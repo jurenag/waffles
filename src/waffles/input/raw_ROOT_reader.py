@@ -40,8 +40,11 @@ def WaveformSet_from_ROOT_file( filepath : str,
         name of one of those starts with the string given to the
         'bulk_data_tree_name' parameter - the bulk data tree - 
         and the other one starts with the string given to the 
-        'meta_data_tree_name' parameter - the meta data tree. 
-        The bulk data TTree should have at least four branches,
+        'meta_data_tree_name' parameter - the meta data tree.
+            The meta data TTree must have at least one branch, 
+        whose name starts with 'run', from which the value for 
+        the Waveform objects attribute RunNumber will be taken.
+            The bulk data TTree must have at least five branches,
         whose names should start with
 
             - 'adcs'
@@ -54,14 +57,19 @@ def WaveformSet_from_ROOT_file( filepath : str,
         Adcs, Channel, Timestamp and RecordNumber will be taken 
         respectively. The 'is_fullstream' branch is used to 
         decide whether a certain waveform should be grabbed 
-        or not, depending on the value given to the                 ## For the moment, the meta-data tree is not
-        'read_full_streaming_data' parameter.                       ## read. This needs to change in the near future.
+        or not, depending on the value given to the
+        'read_full_streaming_data' parameter.
     library : str
         The library to be used to read the input ROOT file. 
         The supported values are 'uproot' and 'pyroot'. If 
         pyroot is selected, then it is assumed that the 
-        types of the branches in the bulk-data tree are the 
+        types of the branches in the meta-data tree are the
         following ones:
+
+            - 'run'             : 'i', i.e. a 32 bit unsigned integer,
+        
+        while the types of the branches in the bulk-data tree 
+        should be:
 
             - 'adcs'            : vector<short>
             - 'channel'         : 'S', i.e. a 16 bit signed integer
@@ -73,7 +81,8 @@ def WaveformSet_from_ROOT_file( filepath : str,
         then the 'daq_timestamp' branch must be of type 'l',
         i.e. a 64 bit unsigned integer. Type checks are not
         implemented here. If these requirements are not met,
-        a segmentation fault may occur in the reading process.
+        the read data may be corrupted or a a segmentation 
+        fault may occur in the reading process.
     bulk_data_tree_name (resp. meta_data_tree_name) : str
         Name of the bulk-data (meta-data) tree which will be 
         extracted from the given ROOT file. The first object 
@@ -157,16 +166,9 @@ def WaveformSet_from_ROOT_file( filepath : str,
     else:
         input_file = ROOT.TFile(filepath)
     
-    try:
-        meta_data_tree, _ = wii.find_TTree_in_ROOT_TFile(   input_file,
-                                                            meta_data_tree_name,
-                                                            library)
-    except NameError:
-        meta_data_tree = None           ## To enable compatibility with old runs when the meta data tree was not defined, we are handling 
-                                        ## this exception here. This can be done for now, because we are not reading yet any information 
-                                        ## from such tree, but setting meta_data_tree to None (i.e. passing None to 
-                                        ## __build_waveforms_list_from_ROOT_file_using_uproot or 
-                                        ## __build_waveforms_list_from_ROOT_file_using_pyroot) will be unacceptable in the near future.
+    meta_data_tree, _ = wii.find_TTree_in_ROOT_TFile(   input_file,
+                                                        meta_data_tree_name,
+                                                        library)
 
     bulk_data_tree, _ = wii.find_TTree_in_ROOT_TFile(   input_file,
                                                         bulk_data_tree_name,
