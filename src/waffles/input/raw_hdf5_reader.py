@@ -227,9 +227,9 @@ def WaveformSet_from_hdf5_files(filepath_list : List[str] = [],
               f" Reading file 1/{len(valid_filepaths)} ...")
 
     output = WaveformSet_from_hdf5_file(
-        filepath_list[0], read_full_streaming_data, nrecord_start_fraction, nrecord_stop_fraction, subsample, wvfm_count)
+        valid_filepaths[0], read_full_streaming_data, nrecord_start_fraction, nrecord_stop_fraction, subsample, wvfm_count)
 
-    for filepath in filepath_list[1:]:
+    for filepath in valid_filepaths[1:]:
         aux = WaveformSet_from_hdf5_file(filepath, read_full_streaming_data, nrecord_start_fraction, nrecord_stop_fraction, subsample, wvfm_count)
         output.merge(aux)
 
