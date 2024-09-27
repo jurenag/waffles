@@ -156,7 +156,8 @@ def WaveformSet_from_hdf5_files(filepath_list : List[str] = [],
                                 nrecord_start_fraction : float = 0.0, \
                                 nrecord_stop_fraction : float = 1.0, \
                                 subsample : int = 1, \
-                                wvfm_count : int = 1e9) -> WaveformSet:
+                                wvfm_count : int = 1e9,
+                                verbose: bool = True) -> WaveformSet:
     """
     Alternative initializer for a WaveformSet object that reads waveforms directly from hdf5 files.
     The WaveformSet object made from each hdf5 file is combined into a single WaveformSet object.
@@ -186,6 +187,8 @@ def WaveformSet_from_hdf5_files(filepath_list : List[str] = [],
         Can combine with nrecord selection parameters.
     wvfm_count : int
         Select total number of waveforms to save.
+    verbose : bool
+        Whether to print the progress of the reading process.
     """
     if folderpath is not None:
 
@@ -210,6 +213,19 @@ def WaveformSet_from_hdf5_files(filepath_list : List[str] = [],
             f"No valid HDF5 files were found in the "
             "given folder or filepath list."))
     
+    if verbose:
+
+        print(f"In function WaveformSet_from_hdf5_files():"
+              f" Found {len(valid_filepaths)} different"
+              " valid HDF5 file(s): \n\n", end = '')
+        
+        for filepath in valid_filepaths:
+            print(f"\t - {filepath}\n", end = '')
+
+        print("\n", end = '')
+        print(f"In function WaveformSet_from_hdf5_files():"
+              f" Reading file 1/{len(valid_filepaths)} ...")
+
     output = WaveformSet_from_hdf5_file(
         filepath_list[0], read_full_streaming_data, nrecord_start_fraction, nrecord_stop_fraction, subsample, wvfm_count)
 
