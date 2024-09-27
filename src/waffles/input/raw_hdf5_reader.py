@@ -202,6 +202,14 @@ def WaveformSet_from_hdf5_files(filepath_list : List[str] = [],
                            # Remove possible duplicates
                            for filepath in set(filepath_list)
                            if filepath_is_hdf5_file_candidate(filepath)]
+        
+    if len(valid_filepaths) == 0:
+        raise Exception(GenerateExceptionMessage(
+            2,
+            'WaveformSet_from_hdf5_files()',
+            f"No valid HDF5 files were found in the "
+            "given folder or filepath list."))
+    
     output = WaveformSet_from_hdf5_file(
         filepath_list[0], read_full_streaming_data, nrecord_start_fraction, nrecord_stop_fraction, subsample, wvfm_count)
 
