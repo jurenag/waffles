@@ -411,9 +411,9 @@ def WaveformSet_from_hdf5_file(filepath : str,
                                 [len(wf.adcs) for wf in waveforms]
                             ).min()
 
-                        for wf in waveforms:
-                            wf._WaveformAdcs__truncate_adcs(
-                                minimum_length)
+                            for wf in waveforms:
+                                wf._WaveformAdcs__truncate_adcs(
+                                    minimum_length)
 
                         return WaveformSet(*waveforms)
                     
@@ -422,8 +422,8 @@ def WaveformSet_from_hdf5_file(filepath : str,
             [len(wf.adcs) for wf in waveforms]
         ).min()
 
-    for wf in waveforms:
-        wf._WaveformAdcs__truncate_adcs(
-            minimum_length)
+        for wf in waveforms:
+            wf._WaveformAdcs__truncate_adcs(
+                minimum_length)
 
     return WaveformSet(*waveforms)
