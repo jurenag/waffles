@@ -403,12 +403,11 @@ def __build_waveforms_list_from_root_file_using_uproot(
     bulk_data_tree (resp. meta_data_tree): uproot.TTree
         The tree from which the bulk data (resp. meta data)
         of the waveforms will be read. Branches whose name
-        start with 'adcs', 'channel', 'timestamp' and 'record'
-        (resp. 'run' and 'ticks_to_nsec') will be required.
+        start with 'adcs', 'channel', 'timestamp', 
+        'daq_timestamp' and 'record' (resp. 'run' and 
+        'ticks_to_nsec') will be required.
     set_offset_wrt_daq_window: bool
-        If True, then the bulk data tree must also have a
-        branch whose name starts with 'daq_timestamp'. In
-        this case, then the time_offset attribute of each
+        If True, then the time_offset attribute of each
         Waveform is set as the difference between its
         value for the 'timestamp' branch and the value
         for the 'daq_timestamp' branch, in such order,
@@ -484,6 +483,11 @@ def __build_waveforms_list_from_root_file_using_uproot(
         bulk_data_tree,
         'timestamp',
         'uproot')
+    
+    daq_timestamp_branch, _ = find_tbranch_in_root_ttree(
+        bulk_data_tree,
+        'daq_timestamp',
+        'uproot')
 
     record_branch, _ = find_tbranch_in_root_ttree(
         bulk_data_tree,
@@ -521,6 +525,10 @@ def __build_waveforms_list_from_root_file_using_uproot(
             current_timestamp_array = timestamp_branch.array(
                 entry_start=branch_start,
                 entry_stop=branch_stop)
+            
+            current_daq_timestamp_array = daq_timestamp_branch.array(
+                entry_start=branch_start,
+                entry_stop=branch_stop)
 
             current_record_array = record_branch.array(
                 entry_start=branch_start,
@@ -536,6 +544,7 @@ def __build_waveforms_list_from_root_file_using_uproot(
                     # 'time_to_nsec' value from the
                     # 'metadata' TTree is fixed
                     # meta_data[1],
+                    current_daq_timestamp_array[i],
                     np.array(current_adcs_array[i]),
                     meta_data[0],
                     current_record_array[i],
@@ -545,11 +554,6 @@ def __build_waveforms_list_from_root_file_using_uproot(
     else:
 
         raw_time_offsets = []
-
-        daq_timestamp_branch, _ = find_tbranch_in_root_ttree(
-            bulk_data_tree,
-            'daq_timestamp',
-            'uproot')
 
         for interval in clustered_idcs_to_retrieve:
 
@@ -568,12 +572,12 @@ def __build_waveforms_list_from_root_file_using_uproot(
             current_timestamp_array = timestamp_branch.array(
                 entry_start=branch_start,
                 entry_stop=branch_stop)
-
-            current_record_array = record_branch.array(
+            
+            current_daq_timestamp_array = daq_timestamp_branch.array(
                 entry_start=branch_start,
                 entry_stop=branch_stop)
 
-            current_daq_timestamp_array = daq_timestamp_branch.array(
+            current_record_array = record_branch.array(
                 entry_start=branch_start,
                 entry_stop=branch_stop)
 
@@ -586,6 +590,7 @@ def __build_waveforms_list_from_root_file_using_uproot(
                     current_timestamp_array[i],
                     16.,    # time_step_ns
                     # meta_data[1],
+                    current_daq_timestamp_array[i],
                     np.array(current_adcs_array[i]),
                     meta_data[0],
                     current_record_array[i],
