@@ -271,7 +271,7 @@ def WaveformSet_from_root_file(
             - 'ticks_to_nsec' 
             
         from which the values for the Waveform objects attributes 
-        RunNumber and TimeStep_ns will be taken respectively.
+        run_number and time_step_ns will be taken respectively.
             The bulk data TTree must have at least five branches,
         whose names should start with
 
@@ -282,7 +282,7 @@ def WaveformSet_from_root_file(
             - 'is_fullstream'
 
         from which the values for the Waveform objects attributes
-        Adcs, Channel, Timestamp and RecordNumber will be taken 
+        adcs, channel, timestamp and record_number will be taken 
         respectively. The 'is_fullstream' branch is used to 
         decide whether a certain waveform should be grabbed 
         or not, depending on the value given to the
@@ -322,7 +322,7 @@ def WaveformSet_from_root_file(
     set_offset_wrt_daq_window: bool
         If True, then the bulk data tree must also have a
         branch whose name starts with 'daq_timestamp'. In
-        this case, then the TimeOffset attribute of each
+        this case, then the time_offset attribute of each
         waveform is set as the difference between its
         value for the 'timestamp' branch and the value
         for the 'daq_timestamp' branch, in such order,
@@ -334,7 +334,7 @@ def WaveformSet_from_root_file(
         null, otherwise an exception will be eventually
         raised by the WaveformSet initializer. If False, 
         then the 'daq_timestamp' branch is not queried 
-        and the TimeOffset attribute of each waveform 
+        and the time_offset attribute of each waveform 
         is set to 0.
     read_full_streaming_data: bool
         If True (resp. False), then only the waveforms for which 
