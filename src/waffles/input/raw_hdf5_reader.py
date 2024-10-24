@@ -396,6 +396,7 @@ def WaveformSet_from_hdf5_file(filepath : str,
                     if not wvfm_index % subsample:
                         waveforms.append(Waveform(timestamps_frag[index],
                                                   16.,    # time_step_ns
+                                                  0,
                                                   np.array(adcs),
                                                   run_numb,
                                                   r[0],
