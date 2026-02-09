@@ -1398,10 +1398,12 @@ def get_gain_snr_and_cross_talk(
                     "In function get_gain_snr_and_cross_talk(): "
                     "No fitted peaks found for channel "
                     f"{endpoint}-{channel}. All of the "
-                    "output entries (namely 'gain', 'snr', "
-                    "'center_0', 'center_0_error', "
-                    "'center_1', 'center_1_error', 'std_0', "
-                    "'std_0_error', 'std_1', 'std_1_error', "
+                    "output entries (namely 'gain', 'gain_error', "
+                    "'snr', 'snr_error', 'center_0', "
+                    "'center_0_error', 'std_0', "
+                    "'std_0_error', 'std_increment', "
+                    "'std_increment_error', 'scaling_factors', "
+                    "'scaling_factors_errors'"
                     "'avg_photons', 'avg_photons_error', "
                     "'cross_talk', 'cross_talk_error') "
                     "will be set to NaN."
@@ -1409,19 +1411,22 @@ def get_gain_snr_and_cross_talk(
                 
                 aux = {
                     'gain': np.nan,
+                    'gain_error': np.nan,
                     'snr': np.nan,
+                    'snr_error': np.nan,
                     'center_0': np.nan,
                     'center_0_error': np.nan,
-                    'center_1': np.nan,
-                    'center_1_error': np.nan,
                     'std_0': np.nan,
                     'std_0_error': np.nan,
-                    'std_1': np.nan,
-                    'std_1_error': np.nan,
+                    'std_increment': np.nan,
+                    'std_increment_error': np.nan,
+                    'scaling_factors': np.nan,
+                    'scaling_factors_errors': np.nan                    
                     'avg_photons': np.nan,
                     'avg_photons_error': np.nan,
                     'cross_talk': np.nan,
                     'cross_talk_error': np.nan
+
                 }
 
             elif fitted_peaks == 1:
@@ -1430,49 +1435,137 @@ def get_gain_snr_and_cross_talk(
                     "Only one fitted peak found for channel "
                     f"{endpoint}-{channel}. Since the gain, "
                     "the SNR and the cross talk cannot be computed, "
-                    "some of the entries (namely 'gain', 'snr', "
-                    "'center_1', 'center_1_error', 'std_1', "
-                    "'std_1_error', 'avg_photons', "
+                    "some of the entries (namely 'gain', 'gain_error', "
+                    "'snr', 'snr_error', 'std_increment', "
+                    "'std_increment_error', 'avg_photons', "
                     "'avg_photons_error', 'cross_talk', "
                     "'cross_talk_error') will be set to NaN."
                 )
 
                 aux = {
                     'gain': np.nan,
+                    'gain_error': np.nan,
                     'snr': np.nan,
+                    'snr_error': np.nan,
                     'center_0': fit_params['mean'][0][0],
                     'center_0_error': fit_params['mean'][0][1],
-                    'center_1': np.nan,
-                    'center_1_error': np.nan,
                     'std_0': fit_params['std'][0][0],
                     'std_0_error': fit_params['std'][0][1],
-                    'std_1': np.nan,
-                    'std_1_error': np.nan,
+                    'std_increment': np.nan,
+                    'std_increment_error': np.nan,
+                    'scaling_factors': [fit_params['scale'][0][0]],
+                    'scaling_factors_errors': [fit_params['scale'][0][1]]
                     'avg_photons': np.nan,
                     'avg_photons_error': np.nan,
                     'cross_talk': np.nan,
                     'cross_talk_error': np.nan
+
                 }
 
             else: # fitted_peaks >= 2:
-                aux_gain = fit_params['mean'][1][0] - fit_params['mean'][0][0]
+
+                # Handle both, the case of independent Gaussian fits and the case of
+                # correlated Gaussian fits, since the output fit parameters have a
+                # different structure in these two cases.
+                fUsedCorrelatedGaussiansModel = False
+                if 'other' in fit_params.keys():
+                    if 'mean_increment' in fit_params['other'].keys() and \
+                        'std_increment' in fit_params['other'].keys():
+                        fUsedCorrelatedGaussiansModel = True
+
+                # Common parameters for both models
+                aux_center_0 = fit_params['mean'][0][0]
+                aux_center_0_error = fit_params['mean'][0][1]
+
+                aux_std_0 = fit_params['std'][0][0]
+                aux_std_0_error = fit_params['std'][0][1]
+
+                aux_scaling_factors = [
+                    fit_params['scale'][k][0] for k in range(fitted_peaks)
+                ]
+                aux_scaling_factors_errors = [
+                    fit_params['scale'][k][1] for k in range(fitted_peaks)
+                ]
+
                 aux_cross_talk = grid_apa.ch_wf_sets[endpoint][channel].calib_histo.CrossTalk
-                aux = {
-                    'gain': aux_gain,
-                    'snr': aux_gain / fit_params['std'][0][0],
-                    'center_0': fit_params['mean'][0][0],
-                    'center_0_error': fit_params['mean'][0][1],
-                    'center_1': fit_params['mean'][1][0],
-                    'center_1_error': fit_params['mean'][1][1],
-                    'std_0': fit_params['std'][0][0],
-                    'std_0_error': fit_params['std'][0][1],
-                    'std_1': fit_params['std'][1][0],
-                    'std_1_error': fit_params['std'][1][1],
-                    'avg_photons': aux_cross_talk.avg_photons,
-                    'avg_photons_error': aux_cross_talk.avg_photons_error,
-                    'cross_talk': aux_cross_talk.CX,
-                    'cross_talk_error': aux_cross_talk.CX_error
-                }
+
+                if not fUsedCorrelatedGaussiansModel:
+
+                    aux_center_1 = fit_params['mean'][1][0]
+                    aux_center_1_error = fit_params['mean'][1][1]
+
+                    aux_std_1 = fit_params['std'][1][0]
+                    aux_std_1_error = fit_params['std'][1][1]
+
+                    aux_gain = aux_center_1 - aux_center_0
+                    aux_gain_error = ((aux_center_0_error ** 2) + (aux_center_1_error ** 2)) ** 0.5
+
+                    if aux_std_1 > aux_std_0:
+                        aux_std_increment = ((aux_std_1 ** 2) - (aux_std_0 ** 2)) ** 0.5
+                        aux_std_increment_error = ((((aux_std_0 * aux_std_0_error) ** 2) + \
+                            ((aux_std_1 * aux_std_1_error) ** 2)) ** 0.5) / aux_std_increment
+                    else:
+                        print(
+                            "In function get_gain_snr_and_fit_parameters(): "
+                            "The standard deviation of the second fitted peak is smaller "
+                            "than the one of the first fitted peak for channel "
+                            f"{endpoint}-{channel}, which is allowed for the independent "
+                            "Gaussian fits model. The std_increment and its error will "
+                            "be set to NaN."
+                        )
+                        aux_std_increment = np.nan
+                        aux_std_increment_error = np.nan
+
+                    aux = {
+                        'gain': aux_gain,
+                        'gain_error': aux_gain_error,
+                        'snr': aux_gain / aux_std_0,
+                        'snr_error': (
+                            ((aux_gain_error / aux_std_0) ** 2) + \
+                            (((aux_gain * aux_center_0_error) / (aux_std_0 ** 2)) ** 2)
+                        ) ** 0.5,
+                        'center_0': aux_center_0,
+                        'center_0_error': aux_center_0_error,
+                        'std_0': aux_std_0,
+                        'std_0_error': aux_std_0_error,
+                        'std_increment': aux_std_increment,
+                        'std_increment_error': aux_std_increment_error,
+                        'scaling_factors': aux_scaling_factors,
+                        'scaling_factors_errors': aux_scaling_factors_errors,
+                        'avg_photons': aux_cross_talk.avg_photons,
+                        'avg_photons_error': aux_cross_talk.avg_photons_error,
+                        'cross_talk': aux_cross_talk.CX,
+                        'cross_talk_error': aux_cross_talk.CX_error
+                    }
+                
+                else:
+
+                    aux_gain = fit_params['other']['mean_increment'][0]
+                    aux_gain_error = fit_params['other']['mean_increment'][1]
+                    aux_std_increment = fit_params['other']['std_increment'][0]
+                    aux_std_increment_error = fit_params['other']['std_increment'][1]
+
+                    aux = {
+                        'gain': aux_gain,
+                        'gain_error': aux_gain_error,
+                        'snr': aux_gain / aux_std_0,
+                        'snr_error': (
+                            ((aux_gain_error / aux_std_0) ** 2) + \
+                            (((aux_gain * aux_center_0_error) / (aux_std_0 ** 2)) ** 2)
+                        ) ** 0.5,
+                        'center_0': aux_center_0,
+                        'center_0_error': aux_center_0_error,
+                        'std_0': aux_std_0,
+                        'std_0_error': aux_std_0_error,
+                        'std_increment': aux_std_increment,
+                        'std_increment_error': aux_std_increment_error,
+                        'scaling_factors': aux_scaling_factors,
+                        'scaling_factors_errors': aux_scaling_factors_errors,
+                        'avg_photons': aux_cross_talk.avg_photons,
+                        'avg_photons_error': aux_cross_talk.avg_photons_error,
+                        'cross_talk': aux_cross_talk.CX,
+                        'cross_talk_error': aux_cross_talk.CX_error
+                    }
 
             if endpoint not in data.keys():
                 data[endpoint] = {}
@@ -1589,15 +1682,17 @@ def save_data_to_dataframe(
         - OV#
         - OV_V
         - gain
+        - gain_error
         - snr
+        - snr_error
         - center_0
         - center_0_error
-        - center_1
-        - center_1_error
         - std_0
         - std_0_error
-        - std_1
-        - std_1_error
+        - std_increment
+        - std_increment_error
+        - scaling_factors
+        - scaling_factors_errors
         - avg_photons
         - avg_photons_error
         - cross_talk
@@ -1634,15 +1729,17 @@ def save_data_to_dataframe(
                 endpoint1: {
                     channel1: {
                         'gain': gain_value_11,
+                        'gain_error': ...,
                         'snr': ...,
+                        'snr_error': ...,
                         'center_0': ...,
                         'center_0_error': ...,
-                        'center_1': ...,
-                        'center_1_error': ...,
                         'std_0': ...,
                         'std_0_error': ...,
-                        'std_1': ...,
-                        'std_1_error': ...,
+                        'std_increment': ...,
+                        'std_increment_error': ...,
+                        'scaling_factors': ...,
+                        'scaling_factors_errors': ...,
                         'avg_photons': ...,
                         'avg_photons_error': ...,
                         'cross_talk': ...,
@@ -1652,15 +1749,17 @@ def save_data_to_dataframe(
                     },
                     channel2: {
                         'gain': gain_value_12,
+                        'gain_error': ...,
                         'snr': ...,
+                        'snr_error': ...,
                         'center_0': ...,
                         'center_0_error': ...,
-                        'center_1': ...,
-                        'center_1_error': ...,
                         'std_0': ...,
                         'std_0_error': ...,
-                        'std_1': ...,
-                        'std_1_error': ...,
+                        'std_increment': ...,
+                        'std_increment_error': ...,
+                        'scaling_factors': ...,
+                        'scaling_factors_errors': ...,
                         'avg_photons': ...,
                         'avg_photons_error': ...,
                         'cross_talk': ...,
@@ -1673,15 +1772,17 @@ def save_data_to_dataframe(
                 endpoint2: {
                     channel1: {
                         'gain': gain_value_21,
+                        'gain_error': ...,
                         'snr': ...,
+                        'snr_error': ...,
                         'center_0': ...,
                         'center_0_error': ...,
-                        'center_1': ...,
-                        'center_1_error': ...,
                         'std_0': ...,
                         'std_0_error': ...,
-                        'std_1': ...,
-                        'std_1_error': ...,
+                        'std_increment': ...,
+                        'std_increment_error': ...,
+                        'scaling_factors': ...,
+                        'scaling_factors_errors': ...,
                         'avg_photons': ...,
                         'avg_photons_error': ...,
                         'cross_talk': ...,
@@ -1691,15 +1792,17 @@ def save_data_to_dataframe(
                     },
                     channel2: {
                         'gain': gain_value_22,
+                        'gain_error': ...,
                         'snr': ...,
+                        'snr_error': ...,
                         'center_0': ...,
                         'center_0_error': ...,
-                        'center_1': ...,
-                        'center_1_error': ...,
                         'std_0': ...,
                         'std_0_error': ...,
-                        'std_1': ...,
-                        'std_1_error': ...,
+                        'std_increment': ...,
+                        'std_increment_error': ...,
+                        'scaling_factors': ...,
+                        'scaling_factors_errors': ...,
                         'avg_photons': ...,
                         'avg_photons_error': ...,
                         'cross_talk': ...,
@@ -1834,15 +1937,17 @@ def save_data_to_dataframe(
         "OV#": [],
         "OV_V": [],
         "gain": [],
+        "gain_error": [],
         "snr": [],
+        "snr_error": [],
         "center_0": [],
         "center_0_error": [],
-        "center_1": [],
-        "center_1_error": [],
         "std_0": [],
         "std_0_error": [],
-        "std_1": [],
-        "std_1_error": [],
+        "std_increment": [],
+        "std_increment_error": [],
+        "scaling_factors": [],
+        "scaling_factors_errors": [],
         "avg_photons": [],
         "avg_photons_error": [],
         "cross_talk": [],
@@ -1872,15 +1977,17 @@ def save_data_to_dataframe(
         df['OV#'] = df['OV#'].astype(int)
         df['OV_V'] = df['OV_V'].astype(float)
         df['gain'] = df['gain'].astype(float)
+        df['gain_error'] = df['gain_error'].astype(float)
         df['snr'] = df['snr'].astype(float)
+        df['snr_error'] = df['snr_error'].astype(float)
         df['center_0'] = df['center_0'].astype(float)
         df['center_0_error'] = df['center_0_error'].astype(float)
-        df['center_1'] = df['center_1'].astype(float)
-        df['center_1_error'] = df['center_1_error'].astype(float)
         df['std_0'] = df['std_0'].astype(float)
         df['std_0_error'] = df['std_0_error'].astype(float)
-        df['std_1'] = df['std_1'].astype(float)
-        df['std_1_error'] = df['std_1_error'].astype(float)
+        df['std_increment'] = df['std_increment'].astype(float)
+        df['std_increment_error'] = df['std_increment_error'].astype(float)
+        df['scaling_factors'] = df['scaling_factors'].astype(object)
+        df['scaling_factors_errors'] = df['scaling_factors_errors'].astype(object)
         df['avg_photons'] = df['avg_photons'].astype(float)
         df['avg_photons_error'] = df['avg_photons_error'].astype(float)
         df['cross_talk'] = df['cross_talk'].astype(float)
@@ -1940,6 +2047,16 @@ def save_data_to_dataframe(
                     )
                     integration_limits = (np.nan, np.nan)
 
+                aux_scaling_factors = [
+                    round(x) for x in \
+                    packed_gain_snr_and_SPE_info[endpoint][channel]["scaling_factors"]
+                ]
+
+                aux_scaling_factors_errors = [
+                    round(float(x), 2) for x in \
+                    packed_gain_snr_and_SPE_info[endpoint][channel]["scaling_factors_errors"]
+                ]
+
                 try:
                     aux_SPE_mean_amplitude = \
                         abs(packed_gain_snr_and_SPE_info[endpoint][channel]["SPE_mean_amplitude"])
@@ -1984,15 +2101,17 @@ def save_data_to_dataframe(
                         }[vendor]
                     ],
                     "gain": [packed_gain_snr_and_SPE_info[endpoint][channel]["gain"]],
+                    "gain_error": [packed_gain_snr_and_SPE_info[endpoint][channel]["gain_error"]],
                     "snr": [packed_gain_snr_and_SPE_info[endpoint][channel]["snr"]],
+                    "snr_error": [packed_gain_snr_and_SPE_info[endpoint][channel]["snr_error"]],
                     "center_0": [packed_gain_snr_and_SPE_info[endpoint][channel]["center_0"]],
                     "center_0_error": [packed_gain_snr_and_SPE_info[endpoint][channel]["center_0_error"]],
-                    "center_1": [packed_gain_snr_and_SPE_info[endpoint][channel]["center_1"]],
-                    "center_1_error": [packed_gain_snr_and_SPE_info[endpoint][channel]["center_1_error"]],
                     "std_0": [packed_gain_snr_and_SPE_info[endpoint][channel]["std_0"]],
                     "std_0_error": [packed_gain_snr_and_SPE_info[endpoint][channel]["std_0_error"]],
-                    "std_1": [packed_gain_snr_and_SPE_info[endpoint][channel]["std_1"]],
-                    "std_1_error": [packed_gain_snr_and_SPE_info[endpoint][channel]["std_1_error"]],
+                    "std_increment": [packed_gain_snr_and_SPE_info[endpoint][channel]["std_increment"]],
+                    "std_increment_error": [packed_gain_snr_and_SPE_info[endpoint][channel]["std_increment_error"]],
+                    "scaling_factors": [aux_scaling_factors],
+                    "scaling_factors_errors": [aux_scaling_factors_errors],
                     "avg_photons": [packed_gain_snr_and_SPE_info[endpoint][channel]["avg_photons"]],
                     "avg_photons_error": [packed_gain_snr_and_SPE_info[endpoint][channel]["avg_photons_error"]],
                     "cross_talk": [packed_gain_snr_and_SPE_info[endpoint][channel]["cross_talk"]],
