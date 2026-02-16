@@ -198,17 +198,14 @@ class WindowIntegrator(WfAna):
             dx=waveform.time_step_ns
         )
 
+        amp_i_low = self.__amp_ll - waveform.time_offset
+        amp_i_up = self.__amp_ul + 1 - waveform.time_offset
+
         amplitude=(
             np.max(
-                waveform.adcs[
-                    self.__amp_ll - waveform.time_offset:
-                    self.__amp_ul + 1 - waveform.time_offset
-                ]
+                waveform.adcs[amp_i_low: amp_i_up]
             ) - np.min(
-                waveform.adcs[
-                    self.__amp_ll - waveform.time_offset:
-                    self.__amp_ul + 1 - waveform.time_offset
-                ]
+                waveform.adcs[amp_i_low: amp_i_up]
             )
         )
 
