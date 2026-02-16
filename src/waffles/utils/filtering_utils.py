@@ -477,12 +477,10 @@ def coarse_selection_for_led_calibration(
     lower_threshold = baseline - abs(lower_limit_wrt_baseline)
     upper_threshold = baseline + abs(upper_limit_wrt_baseline)
 
-    # The following algorithm is slightly faster (~0.61 vs
-    # ~0.68 seconds on average for a waveformset with 199453
-    # waveforms with 1024 points each on a Mac M2) than the
-    # one which computes np.max(waveform.adcs) and
-    # np.min(waveform.adcs) and compares it to lower_threshold
-    # and upper_threshold.
+    if np.min(waveform.adcs) < lower_threshold or \
+        np.max(waveform.adcs) > upper_threshold:
+        return False
+    
     for adc in waveform.adcs:
         if adc < lower_threshold or adc > upper_threshold:
             return False
