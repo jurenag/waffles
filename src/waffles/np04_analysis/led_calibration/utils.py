@@ -1430,7 +1430,7 @@ def get_gain_snr_and_cross_talk(
                     'std_increment': np.nan,
                     'std_increment_error': np.nan,
                     'scaling_factors': np.nan,
-                    'scaling_factors_errors': np.nan                    
+                    'scaling_factors_errors': np.nan,
                     'avg_photons': np.nan,
                     'avg_photons_error': np.nan,
                     'cross_talk': np.nan,
@@ -1463,7 +1463,7 @@ def get_gain_snr_and_cross_talk(
                     'std_increment': np.nan,
                     'std_increment_error': np.nan,
                     'scaling_factors': [fit_params['scale'][0][0]],
-                    'scaling_factors_errors': [fit_params['scale'][0][1]]
+                    'scaling_factors_errors': [fit_params['scale'][0][1]],
                     'avg_photons': np.nan,
                     'avg_photons_error': np.nan,
                     'cross_talk': np.nan,
