@@ -399,13 +399,26 @@ ch_span_fraction_around_peaks: 0.06
 # mean + half_width*std] are included in the SPE computation.
 half_width_around_peak_in_stds_for_SPE_filtering: 1.0
 
+# Whether to produce plots at all. If set to false,
+# no plots are produced regardless of the values of
+# save_fit_histograms, save_persistence_heatmaps and
+# save_SPE_heatmaps.
+save_plots: true
+
+# Whether to save the fitted calibration histograms.
+# This parameter makes a difference if save_plots
+# is set to True.
+save_fit_histograms: true
+
 # Whether to save the persistence heatmaps of the
-# integrated waveforms or not
+# integrated waveforms. This parameter makes a difference
+# if save_plots is set to True.
 save_persistence_heatmaps: true
 
 # Whether to save the heatmaps of the waveforms
-# identified as SPEs
-save_SPE_heatmaps: true
+# identified as SPEs. This parameter makes a difference
+# if save_plots is set to True.
+save_SPE_heatmaps: false
 
 # Name of the output CSV file where
 # the calibration results will be saved

@@ -512,16 +512,33 @@ class Analysis1(WafflesAnalysis):
                 "SPE computation."
             )
 
+            save_plots: bool = Field(
+                default=True,
+                description="Whether to produce plots at all. If set "
+                "to False, no plots are produced regardless of the "
+                "values of save_fit_histograms, "
+                "save_persistence_heatmaps and save_SPE_heatmaps."
+            )
+
+            save_fit_histograms: bool = Field(
+                default=True,
+                description="Whether to save the fitted calibration "
+                "histograms. This parameter only controls the charge "
+                "histograms."
+            )
+
             save_persistence_heatmaps: bool = Field(
                 default=False,
-                description="Whether to save the persistence "
-                "heatmaps of the integrated waveforms or not"
+                description="Whether to save the persistence heatmaps "
+                "of the integrated waveforms. This parameter makes a "
+                "difference if save_plots is set to True."
             )
 
             save_SPE_heatmaps: bool = Field(
                 default=False,
-                description="Whether to save the heatmaps of "
-                "the waveforms identified as SPEs"
+                description="Whether to save the heatmaps of the "
+                "waveforms identified as SPEs. This parameter makes "
+                "a difference if save_plots is set to True."
             )
 
             output_dataframe_filename: str = Field(
@@ -1293,57 +1310,68 @@ class Analysis1(WafflesAnalysis):
         base_file_path = f"{self.params.output_path}"\
             f"/batch_{self.batch}_apa_{self.apa}_pde_{self.pde}"
 
-        # Save the charge histogram plot
-        figure = plot_ChannelWsGrid(
-            self.grid_apa,
-            figure=None,
-            share_x_scale=False,
-            share_y_scale=False,
-            mode="calibration",
-            wfs_per_axes=None,
-            plot_peaks_fits=True,
-            plot_sum_of_gaussians=True if \
-                self.params.fit_type == 'correlated_gaussians' \
-                    else False,
-            detailed_label=False,
-            verbose=self.params.verbose
-        )
 
-        title = f"Batch {self.batch}, APA {self.apa}, "
-        title += f"PDE {self.pde} - Runs {list(self.wfset.runs)}"
-        title_fontsize = 22
-        figure_width = 1100
-        figure_height = 1200
-
-        figure.update_layout(
-            title={
-                "text": title,
-                "font": {"size": title_fontsize}
-            },
-            width=figure_width,
-            height=figure_height,
-            showlegend=False
-        )
-
-        if self.params.show_figures:
-            figure.show()
-
-        fig_path = f"{base_file_path}_calibration_histograms.png"
         if self.params.verbose:
-            print(
-                "In function Analysis1.write_output(): "
-                "Writing the fitted calibration histograms "
-                f"for batch {self.batch}, APA {self.apa}, "
-                f"and PDE {self.pde} to {fig_path} ... ",
-                end=''
+            if not self.params.save_plots:
+                print(
+                    "In function Analysis1.write_output(): "
+                    "Skipping all plots because save_plots "
+                    "is set to False."
+                )
+
+        if self.params.save_plots:
+            title = f"Batch {self.batch}, APA {self.apa}, "
+            title += f"PDE {self.pde} - Runs {list(self.wfset.runs)}"
+            title_fontsize = 22
+            figure_width = 1100
+            figure_height = 1200
+
+        if self.params.save_plots and self.params.save_fit_histograms:
+            # Save the charge histogram plot
+            figure = plot_ChannelWsGrid(
+                self.grid_apa,
+                figure=None,
+                share_x_scale=False,
+                share_y_scale=False,
+                mode="calibration",
+                wfs_per_axes=None,
+                plot_peaks_fits=True,
+                plot_sum_of_gaussians=True if \
+                    self.params.fit_type == 'correlated_gaussians' \
+                        else False,
+                detailed_label=False,
+                verbose=self.params.verbose
             )
-    
-        figure.write_image(f"{fig_path}")
-        if self.params.verbose:
-            print("Finished.")
+
+            figure.update_layout(
+                title={
+                    "text": title,
+                    "font": {"size": title_fontsize}
+                },
+                width=figure_width,
+                height=figure_height,
+                showlegend=False
+            )
+
+            if self.params.show_figures:
+                figure.show()
+
+            fig_path = f"{base_file_path}_calibration_histograms.png"
+            if self.params.verbose:
+                print(
+                    "In function Analysis1.write_output(): "
+                    "Writing the fitted calibration histograms "
+                    f"for batch {self.batch}, APA {self.apa}, "
+                    f"and PDE {self.pde} to {fig_path} ... ",
+                    end=''
+                )
+        
+            figure.write_image(f"{fig_path}")
+            if self.params.verbose:
+                print("Finished.")
 
         # Save the persistence heatmaps
-        if self.params.save_persistence_heatmaps:
+        if self.params.save_plots and self.params.save_persistence_heatmaps:
 
             aux_time_increment = 100
 
@@ -1438,7 +1466,7 @@ class Analysis1(WafflesAnalysis):
             if self.params.verbose:
                 print("Finished.")
 
-        if self.params.save_SPE_heatmaps:
+        if self.params.save_plots and self.params.save_SPE_heatmaps:
             time_bins = 512 if not self.params.apply_correlation_alignment \
                 else round((abs(self.params.SPE_template_lower_limit_wrt_pulse) + \
                     abs(self.params.SPE_template_upper_limit_wrt_pulse))/2.)
