@@ -1350,6 +1350,15 @@ def get_gain_snr_and_cross_talk(
     excluded_channels: list,
     reset_excluded_channels: bool = False
 ) -> dict:
+    """Extract gain/SNR/cross-talk related quantities, per
+    channel, from the fit results
+
+    Returns
+    -------
+    dict
+        Nested dictionary keyed as [endpoint][channel], containing
+        fit-derived quantities
+    """
 
     data = {}
 
@@ -1396,6 +1405,10 @@ def get_gain_snr_and_cross_talk(
                 grid_apa.ch_wf_sets[endpoint][channel].calib_histo
             )
 
+            integrated_waveforms = len(
+                grid_apa.ch_wf_sets[endpoint][channel].waveforms
+            )
+
             if fitted_peaks == 0:
                 print(
                     "In function get_gain_snr_and_cross_talk(): "
@@ -1413,6 +1426,7 @@ def get_gain_snr_and_cross_talk(
                 )
                 
                 aux = {
+                    'integrated_waveforms': integrated_waveforms,
                     'gain': np.nan,
                     'gain_error': np.nan,
                     'snr': np.nan,
@@ -1446,6 +1460,7 @@ def get_gain_snr_and_cross_talk(
                 )
 
                 aux = {
+                    'integrated_waveforms': integrated_waveforms,
                     'gain': np.nan,
                     'gain_error': np.nan,
                     'snr': np.nan,
@@ -1520,6 +1535,7 @@ def get_gain_snr_and_cross_talk(
                         aux_std_increment_error = np.nan
 
                     aux = {
+                        'integrated_waveforms': integrated_waveforms,
                         'gain': aux_gain,
                         'gain_error': aux_gain_error,
                         'snr': aux_gain / aux_std_0,
@@ -1549,6 +1565,7 @@ def get_gain_snr_and_cross_talk(
                     aux_std_increment_error = fit_params['other']['std_increment'][1]
 
                     aux = {
+                        'integrated_waveforms': integrated_waveforms,
                         'gain': aux_gain,
                         'gain_error': aux_gain_error,
                         'snr': aux_gain / aux_std_0,
@@ -1684,6 +1701,7 @@ def save_data_to_dataframe(
         - vendor
         - OV#
         - OV_V
+        - integrated_waveforms
         - gain
         - gain_error
         - snr
@@ -1731,7 +1749,8 @@ def save_data_to_dataframe(
             {
                 endpoint1: {
                     channel1: {
-                        'gain': gain_value_11,
+                        'integrated_waveforms': value_11,
+                        'gain': ...,
                         'gain_error': ...,
                         'snr': ...,
                         'snr_error': ...,
@@ -1751,7 +1770,8 @@ def save_data_to_dataframe(
                         'SPE_mean_adcs': SPE_mean_adcs_value_11
                     },
                     channel2: {
-                        'gain': gain_value_12,
+                        'integrated_waveforms': value_12,
+                        'gain': ...,
                         'gain_error': ...,
                         'snr': ...,
                         'snr_error': ...,
@@ -1774,7 +1794,7 @@ def save_data_to_dataframe(
                 },
                 endpoint2: {
                     channel1: {
-                        'gain': gain_value_21,
+                        'integrated_waveforms': value_21,
                         'gain_error': ...,
                         'snr': ...,
                         'snr_error': ...,
@@ -1794,7 +1814,8 @@ def save_data_to_dataframe(
                         'SPE_mean_adcs': SPE_mean_adcs_value_21
                     },
                     channel2: {
-                        'gain': gain_value_22,
+                        'integrated_waveforms': value_22,
+                        'gain': ...,
                         'gain_error': ...,
                         'snr': ...,
                         'snr_error': ...,
@@ -1939,6 +1960,7 @@ def save_data_to_dataframe(
         "vendor": [],
         "OV#": [],
         "OV_V": [],
+        "integrated_waveforms": [],
         "gain": [],
         "gain_error": [],
         "snr": [],
@@ -1979,6 +2001,7 @@ def save_data_to_dataframe(
         df['vendor'] = df['vendor'].astype(str)
         df['OV#'] = df['OV#'].astype(int)
         df['OV_V'] = df['OV_V'].astype(float)
+        df['integrated_waveforms'] = df['integrated_waveforms'].astype(int)
         df['gain'] = df['gain'].astype(float)
         df['gain_error'] = df['gain_error'].astype(float)
         df['snr'] = df['snr'].astype(float)
@@ -2010,170 +2033,184 @@ def save_data_to_dataframe(
 
     df = pd.read_csv(path_to_output_file)
 
-    if set(df.columns) != expected_columns.keys():
+    expected_columns_set = set(expected_columns.keys())
+    found_columns_set = set(df.columns)
+
+    # Backward compatibility: old CSVs may miss the
+    # 'integrated_waveforms' column.
+    if (
+        expected_columns_set - found_columns_set == {'integrated_waveforms'} and
+        found_columns_set - expected_columns_set == set()
+    ):
+        df['integrated_waveforms'] = np.nan
+
+    elif found_columns_set != expected_columns_set:
         raise Exception(
             "In function save_data_to_dataframe(): "
             "The columns of the found dataframe do not "
             "match the expected ones. Something went wrong."
         )
-    else:
-        for endpoint in packed_gain_snr_and_SPE_info.keys():
-            for channel in packed_gain_snr_and_SPE_info[endpoint]:
 
-                vendor = get_vendor(
+    df = df[list(expected_columns.keys())]
+
+    for endpoint in packed_gain_snr_and_SPE_info.keys():
+        for channel in packed_gain_snr_and_SPE_info[endpoint]:
+
+            vendor = get_vendor(
+                endpoint,
+                channel,
+                sipm_vendor_df=sipm_vendor_df
+            )
+
+            try:
+                fine_selection_limits = \
+                    packed_limits[endpoint][channel]['fine_selection']
+            except KeyError:
+                print(
+                    "In function save_data_to_dataframe(): "
+                    f"Fine-selection limits for channel {endpoint}-"
+                    f"{channel} were not found. Setting them to NaN."
+                )
+                fine_selection_limits = (np.nan, np.nan, np.nan)
+
+            try:
+                integration_limits = \
+                    packed_limits[endpoint][channel]['integration']
+
+            except KeyError:
+                print(
+                    "In function save_data_to_dataframe(): "
+                    "Integration limits for channel "
+                    f"{endpoint}-{channel} were not found. "
+                    "Setting them to NaN."
+                )
+                integration_limits = (np.nan, np.nan)
+
+            aux_scaling_factors = [
+                round(x) for x in \
+                packed_gain_snr_and_SPE_info[endpoint][channel]["scaling_factors"]
+            ]
+
+            aux_scaling_factors_errors = [
+                round(float(x), 2) for x in \
+                packed_gain_snr_and_SPE_info[endpoint][channel]["scaling_factors_errors"]
+            ]
+
+            try:
+                aux_SPE_mean_amplitude = \
+                    abs(packed_gain_snr_and_SPE_info[endpoint][channel]["SPE_mean_amplitude"])
+                
+                aux_SPE_mean_adcs = [
+                    round(float(x), 4) for x in \
+                    packed_gain_snr_and_SPE_info[endpoint][channel]["SPE_mean_adcs"]
+                ]
+            
+            except KeyError:
+                print(
+                    "In function save_data_to_dataframe(): "
+                    "SPE mean amplitude or SPE mean adcs for "
+                    f"channel {endpoint}-{channel} were not found. "
+                    "Setting them to NaN."
+                )
+                aux_SPE_mean_amplitude = np.nan
+                aux_SPE_mean_adcs = np.nan
+
+            # Assemble the new row
+            new_row = {
+                "date": [date],
+                "batch": [int(batch)],
+                "APA": [int(apa)],
+                "PDE": [pde],
+                "endpoint": [endpoint],
+                "channel": [channel],
+                "channel_iterator": [get_channel_iterator(
+                    apa,
                     endpoint,
-                    channel,
-                    sipm_vendor_df=sipm_vendor_df
+                    channel
+                )],
+                "vendor": [vendor],
+                "OV#": [ov_no],
+                # We've made sure that vendor is either
+                # 'HPK', 'FBK' or 'unavailable'
+                "OV_V": [
+                    {
+                        'HPK': hpk_ov,
+                        'FBK': fbk_ov,
+                        'unavailable': np.nan
+                    }[vendor]
+                ],
+                "integrated_waveforms": [packed_gain_snr_and_SPE_info[endpoint][channel]["integrated_waveforms"]],
+                "gain": [packed_gain_snr_and_SPE_info[endpoint][channel]["gain"]],
+                "gain_error": [packed_gain_snr_and_SPE_info[endpoint][channel]["gain_error"]],
+                "snr": [packed_gain_snr_and_SPE_info[endpoint][channel]["snr"]],
+                "snr_error": [packed_gain_snr_and_SPE_info[endpoint][channel]["snr_error"]],
+                "center_0": [packed_gain_snr_and_SPE_info[endpoint][channel]["center_0"]],
+                "center_0_error": [packed_gain_snr_and_SPE_info[endpoint][channel]["center_0_error"]],
+                "std_0": [packed_gain_snr_and_SPE_info[endpoint][channel]["std_0"]],
+                "std_0_error": [packed_gain_snr_and_SPE_info[endpoint][channel]["std_0_error"]],
+                "std_increment": [packed_gain_snr_and_SPE_info[endpoint][channel]["std_increment"]],
+                "std_increment_error": [packed_gain_snr_and_SPE_info[endpoint][channel]["std_increment_error"]],
+                "scaling_factors": [aux_scaling_factors],
+                "scaling_factors_errors": [aux_scaling_factors_errors],
+                "avg_photons": [packed_gain_snr_and_SPE_info[endpoint][channel]["avg_photons"]],
+                "avg_photons_error": [packed_gain_snr_and_SPE_info[endpoint][channel]["avg_photons_error"]],
+                "cross_talk": [packed_gain_snr_and_SPE_info[endpoint][channel]["cross_talk"]],
+                "cross_talk_error": [packed_gain_snr_and_SPE_info[endpoint][channel]["cross_talk_error"]],
+                "SPE_mean_amplitude": [aux_SPE_mean_amplitude],
+                "SPE_mean_adcs": [aux_SPE_mean_adcs],
+                "fine_selection_baseline_i_low": [fine_selection_limits[0]],
+                "fine_selection_baseline_i_up": [fine_selection_limits[1]],
+                "fine_selection_signal_i_up": [fine_selection_limits[2]],
+                "integration_lower_limit": [integration_limits[0]],
+                "integration_upper_limit": [integration_limits[1]]
+            }
+
+            # Check if there is already an entry for the
+            # given endpoint and channel for this OV and batch
+            matching_rows_indices = df[
+                (df['batch'] == batch) &
+                (df['endpoint'] == endpoint) &
+                (df['channel'] == channel) &
+                (df['OV#'] == ov_no)
+            ].index
+
+            if len(matching_rows_indices) > 1:
+                raise Exception(
+                    "In function save_data_to_dataframe(): "
+                    "There are already more than one rows "
+                    f"for the given channel ({endpoint}-{channel}"
+                    f"), batch ({batch}) and OV# ({ov_no})"
+                    ". Something went wrong."
                 )
 
-                try:
-                    fine_selection_limits = \
-                        packed_limits[endpoint][channel]['fine_selection']
-                except KeyError:
-                    print(
-                        "In function save_data_to_dataframe(): "
-                        f"Fine-selection limits for channel {endpoint}-"
-                        f"{channel} were not found. Setting them to NaN."
-                    )
-                    fine_selection_limits = (np.nan, np.nan, np.nan)
+            elif len(matching_rows_indices) == 1:
+                if overwrite:
 
-                try:
-                    integration_limits = \
-                        packed_limits[endpoint][channel]['integration']
+                    row_index = matching_rows_indices[0]
 
-                except KeyError:
-                    print(
-                        "In function save_data_to_dataframe(): "
-                        "Integration limits for channel "
-                        f"{endpoint}-{channel} were not found. "
-                        "Setting them to NaN."
-                    )
-                    integration_limits = (np.nan, np.nan)
+                    new_row = {key: new_row[key][0] for key in new_row.keys()}
 
-                aux_scaling_factors = [
-                    round(x) for x in \
-                    packed_gain_snr_and_SPE_info[endpoint][channel]["scaling_factors"]
-                ]
-
-                aux_scaling_factors_errors = [
-                    round(float(x), 2) for x in \
-                    packed_gain_snr_and_SPE_info[endpoint][channel]["scaling_factors_errors"]
-                ]
-
-                try:
-                    aux_SPE_mean_amplitude = \
-                        abs(packed_gain_snr_and_SPE_info[endpoint][channel]["SPE_mean_amplitude"])
-                    
-                    aux_SPE_mean_adcs = [
-                        round(float(x), 4) for x in \
-                        packed_gain_snr_and_SPE_info[endpoint][channel]["SPE_mean_adcs"]
-                    ]
-                
-                except KeyError:
-                    print(
-                        "In function save_data_to_dataframe(): "
-                        "SPE mean amplitude or SPE mean adcs for "
-                        f"channel {endpoint}-{channel} were not found. "
-                        "Setting them to NaN."
-                    )
-                    aux_SPE_mean_amplitude = np.nan
-                    aux_SPE_mean_adcs = np.nan
-
-                # Assemble the new row
-                new_row = {
-                    "date": [date],
-                    "batch": [int(batch)],
-                    "APA": [int(apa)],
-                    "PDE": [pde],
-                    "endpoint": [endpoint],
-                    "channel": [channel],
-                    "channel_iterator": [get_channel_iterator(
-                        apa,
-                        endpoint,
-                        channel
-                    )],
-                    "vendor": [vendor],
-                    "OV#": [ov_no],
-                    # We've made sure that vendor is either
-                    # 'HPK', 'FBK' or 'unavailable'
-                    "OV_V": [
-                        {
-                            'HPK': hpk_ov,
-                            'FBK': fbk_ov,
-                            'unavailable': np.nan
-                        }[vendor]
-                    ],
-                    "gain": [packed_gain_snr_and_SPE_info[endpoint][channel]["gain"]],
-                    "gain_error": [packed_gain_snr_and_SPE_info[endpoint][channel]["gain_error"]],
-                    "snr": [packed_gain_snr_and_SPE_info[endpoint][channel]["snr"]],
-                    "snr_error": [packed_gain_snr_and_SPE_info[endpoint][channel]["snr_error"]],
-                    "center_0": [packed_gain_snr_and_SPE_info[endpoint][channel]["center_0"]],
-                    "center_0_error": [packed_gain_snr_and_SPE_info[endpoint][channel]["center_0_error"]],
-                    "std_0": [packed_gain_snr_and_SPE_info[endpoint][channel]["std_0"]],
-                    "std_0_error": [packed_gain_snr_and_SPE_info[endpoint][channel]["std_0_error"]],
-                    "std_increment": [packed_gain_snr_and_SPE_info[endpoint][channel]["std_increment"]],
-                    "std_increment_error": [packed_gain_snr_and_SPE_info[endpoint][channel]["std_increment_error"]],
-                    "scaling_factors": [aux_scaling_factors],
-                    "scaling_factors_errors": [aux_scaling_factors_errors],
-                    "avg_photons": [packed_gain_snr_and_SPE_info[endpoint][channel]["avg_photons"]],
-                    "avg_photons_error": [packed_gain_snr_and_SPE_info[endpoint][channel]["avg_photons_error"]],
-                    "cross_talk": [packed_gain_snr_and_SPE_info[endpoint][channel]["cross_talk"]],
-                    "cross_talk_error": [packed_gain_snr_and_SPE_info[endpoint][channel]["cross_talk_error"]],
-                    "SPE_mean_amplitude": [aux_SPE_mean_amplitude],
-                    "SPE_mean_adcs": [aux_SPE_mean_adcs],
-                    "fine_selection_baseline_i_low": [fine_selection_limits[0]],
-                    "fine_selection_baseline_i_up": [fine_selection_limits[1]],
-                    "fine_selection_signal_i_up": [fine_selection_limits[2]],
-                    "integration_lower_limit": [integration_limits[0]],
-                    "integration_upper_limit": [integration_limits[1]]
-                }
-
-                # Check if there is already an entry for the
-                # given endpoint and channel for this OV and batch
-                matching_rows_indices = df[
-                    (df['batch'] == batch) &
-                    (df['endpoint'] == endpoint) &       
-                    (df['channel'] == channel) &
-                    (df['OV#'] == ov_no)
-                ].index          
-
-                if len(matching_rows_indices) > 1:
-                    raise Exception(
-                        "In function save_data_to_dataframe(): "
-                        "There are already more than one rows "
-                        f"for the given channel ({endpoint}-{channel}"
-                        f"), batch ({batch}) and OV# ({ov_no})"
-                        ". Something went wrong."
-                    )
-
-                elif len(matching_rows_indices) == 1:
-                    if overwrite:
-
-                        row_index = matching_rows_indices[0]
-
-                        new_row = {key: new_row[key][0] for key in new_row.keys()}  
-
-                        if actually_save:
-                            df.loc[row_index, :] = new_row
-
-                    else:
-                        print(
-                            "In function save_data_to_dataframe(): "
-                            f"Since overwrite is set to False, "
-                            f"and an entry for batch {batch}, "
-                            f"channel {endpoint}-{channel} at OV#"
-                            f" {ov_no} already exists, the new "
-                            "entry for this channel will not be saved."
-                        )
-
-                else: # len(matching_rows_indices) == 0
                     if actually_save:
-                        df = pd.concat(
-                            [df, pd.DataFrame(new_row)],
-                            axis=0,
-                            ignore_index=True
-                        )
-                        df.reset_index()
+                        df.loc[row_index, :] = new_row
+
+                else:
+                    print(
+                        "In function save_data_to_dataframe(): "
+                        f"Since overwrite is set to False, "
+                        f"and an entry for batch {batch}, "
+                        f"channel {endpoint}-{channel} at OV#"
+                        f" {ov_no} already exists, the new "
+                        "entry for this channel will not be saved."
+                    )
+
+            else: # len(matching_rows_indices) == 0
+                if actually_save:
+                    df = pd.concat(
+                        [df, pd.DataFrame(new_row)],
+                        axis=0,
+                        ignore_index=True
+                    )
+                    df.reset_index()
         df.to_csv(
             path_to_output_file,
             index=False,
