@@ -292,9 +292,9 @@ def get_alignment_seeds_dataframe(
     """This function reads the given CSV file and
     checks that it contains the required columns
     ('batch', 'APA', 'PDE', 'endpoint', 'channel',
-    'vendor', 'center_0', 'gain' and
-    'SPE_mean_adcs'). If filepath is None,
-    a we.IncompatibleInput exception is raised.
+    'vendor', 'gain' and 'SPE_mean_adcs'). If
+    filepath is None, a we.IncompatibleInput
+    exception is raised.
 
     Parameters
     ----------
@@ -326,7 +326,6 @@ def get_alignment_seeds_dataframe(
         'endpoint',
         'channel',
         'vendor',
-        'center_0',
         'gain',
         'SPE_mean_adcs'
     }
@@ -338,8 +337,8 @@ def get_alignment_seeds_dataframe(
                 'get_alignment_seeds_dataframe()',
                 f"The file {filepath} is missing some of the required "
                 "columns. It must contain at least 'batch', 'APA', "
-                "'PDE', 'endpoint', 'channel', 'vendor', 'center_0', "
-                "'gain' and 'SPE_mean_adcs'."
+                "'PDE', 'endpoint', 'channel', 'vendor', 'gain' "
+                "and 'SPE_mean_adcs'."
             )
         )
 
@@ -354,7 +353,6 @@ def __got_well_formed_alignment_seeds(
     for the correlation-based alignment, meaning that such row
     meets the following requirements: 
 
-        - the value of the 'center_0' column is a number
         - the value of the 'gain' column is a number
         - the value of the 'SPE_mean_adcs' column is a str
 
@@ -371,10 +369,10 @@ def __got_well_formed_alignment_seeds(
     -------
     bool
         True if there is at least one row in filtered_df which
-        meets the three listed requirements, False otherwise.
+        meets the listed requirements, False otherwise.
     int
         The index of the first row in filtered_df which meets
-        the three listed requirements.
+        the listed requirements.
 
     """
 
@@ -385,10 +383,9 @@ def __got_well_formed_alignment_seeds(
         # isinstance(..., Number) don't distinguish
         # between int, np.int, float, np.float etc.
         for i in range(len(filtered_df)):
-            if isinstance(filtered_df.iloc[i]['center_0'], Number):
-                if isinstance(filtered_df.iloc[i]['gain'], Number):
-                    if isinstance(filtered_df.iloc[i]['SPE_mean_adcs'], str):
-                        return True, i
+            if isinstance(filtered_df.iloc[i]['gain'], Number):
+                if isinstance(filtered_df.iloc[i]['SPE_mean_adcs'], str):
+                    return True, i
         return False, -1
 
 def get_alignment_seeds(
@@ -401,9 +398,9 @@ def get_alignment_seeds(
     sipm_vendor_df: Optional[pd.DataFrame] = None,
     same_endpoint_fallback: bool = True,
     same_batch_apa_and_pde_fallback: bool = True
-) -> np.ndarray:
-    """This function retrieves the following entries: 'center_0', 
-    'gain' and 'SPE_mean_adcs'; from the given dataframe,
+) -> dict:
+    """This function retrieves the following entries: 'gain'
+    and 'SPE_mean_adcs'; from the given dataframe,
     based on the specified batch, APA, PDE, endpoint and channel
     values. If no exact match is found, it can optionally fall
     back to searching for such information
@@ -428,7 +425,6 @@ def get_alignment_seeds(
             - 'endpoint',
             - 'channel',
             - 'vendor',
-            - 'center_0',
             - 'gain' and
             - 'SPE_mean_adcs'.
     batch: int
@@ -466,7 +462,6 @@ def get_alignment_seeds(
     dict
         The returned dictionary has the following structure:
         {
-            'center_0': float,
             'gain': float,
             'SPE_mean_adcs': np.ndarray
         }
@@ -570,7 +565,6 @@ def get_alignment_seeds(
     )
 
     return {
-            'center_0': float(used_row['center_0']),
             'gain': float(used_row['gain']),
             'SPE_mean_adcs': SPE_template
         }

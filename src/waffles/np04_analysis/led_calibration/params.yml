@@ -85,14 +85,13 @@ upper_limit_wrt_baseline: 40.
 apply_correlation_alignment: false
 
 # If apply_correlation_alignment is set to True,
-# this parameter must be defined. It is the path 
-# to a CSV file which contains the seed gain and the 
-# SPE templates used for the correlation alignment. 
-# The CSV file must contain the columns 'batch', 'APA', 
-# 'PDE', 'endpoint', 'channel', 'vendor, 'center_0', 
-# 'center_1' and 'SPE_mean_adcs'
-alignment_seeds_filepath: './configs/optimal_seeds_dfb_30p.csv'
-
+# this parameter must be defined. It is the path
+# to a CSV file which contains the seed gain and the
+# SPE templates used for the correlation alignment.
+# The CSV file must contain the columns 'batch', 'APA',
+# 'PDE', 'endpoint', 'channel', 'vendor', 'gain' and
+# 'SPE_mean_adcs'
+alignment_seeds_filepath: './configs/gain_and_alignment_seeds/HPF_at_50_kHz_dfb_0.3.csv'
 
 # This parameter makes a difference only 
 # if apply_correlation_alignment is set to True. In that 
