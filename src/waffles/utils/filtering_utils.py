@@ -481,10 +481,6 @@ def coarse_selection_for_led_calibration(
         np.max(waveform.adcs) > upper_threshold:
         return False
     
-    for adc in waveform.adcs:
-        if adc < lower_threshold or adc > upper_threshold:
-            return False
-    
     return True
 
 def band_correlation_filter(
