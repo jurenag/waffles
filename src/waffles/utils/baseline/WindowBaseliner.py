@@ -122,14 +122,26 @@ class WindowBaseliner(WfAna):
         allowed_samples_mask = \
             np.abs(baseline_samples - preliminary_baseline) <= \
                 abs(self.__std_cut) * np.std(baseline_samples)
+        
+        # True if all of the entries of the mask are
+        # false, i.e. if no baseline sample is allowed
+        if np.all(~allowed_samples_mask):
+            print(
+                "In function WindowBaseliner.analyse(): WARNING: "
+                "No baseline samples were left after applying the "
+                "standard deviation cut. The preliminary baseline "
+                "estimate will be used as the final baseline."
+            )
+            baseline = preliminary_baseline
 
-        baseline_samples = baseline_samples[allowed_samples_mask]
+        else:
+            baseline_samples = baseline_samples[allowed_samples_mask]
 
-        # WindowBaseliner.check_input_parameters() takes care of
-        # checking that self.__type is either 'mean' or 'median'
-        baseline = np.mean(baseline_samples) \
-            if self.__type == 'mean' else \
-            np.median(baseline_samples)
+            # WindowBaseliner.check_input_parameters() takes care of
+            # checking that self.__type is either 'mean' or 'median'
+            baseline = np.mean(baseline_samples) \
+                if self.__type == 'mean' else \
+                np.median(baseline_samples)
 
         self._WfAna__result = WfAnaResult(
             baseline=baseline,
