@@ -191,7 +191,7 @@ signal_region_half_points: 10
 
 baseline_i_low: # Typical alignment
     1:
-        455
+        0
     2:
         0
     3:
