@@ -2086,15 +2086,41 @@ def save_data_to_dataframe(
                 )
                 integration_limits = (np.nan, np.nan)
 
-            aux_scaling_factors = [
-                round(x) for x in \
-                packed_gain_snr_and_SPE_info[endpoint][channel]["scaling_factors"]
-            ]
+            # get_gain_snr_and_cross_talk() sets this key
+            # to NaN when no peaks were fit.
+            if not isinstance(
+                packed_gain_snr_and_SPE_info[endpoint][channel]["scaling_factors"],
+                list
+            ):
+                if np.isnan(
+                    packed_gain_snr_and_SPE_info[endpoint][channel]["scaling_factors"]
+                ):
+                    print(
+                        "In function save_data_to_dataframe(): Found NaN "
+                        f"entries for 'scaling_factors' for channel {endpoint}"
+                        f"-{channel}. Assuming that get_gain_snr_and_cross_talk() "
+                        "set them to NaN because no peaks were fit for this channel."
+                    )
 
-            aux_scaling_factors_errors = [
-                round(float(x), 2) for x in \
-                packed_gain_snr_and_SPE_info[endpoint][channel]["scaling_factors_errors"]
-            ]
+                    aux_scaling_factors = np.nan
+                    aux_scaling_factors_errors = np.nan
+
+                else:
+                    raise Exception(
+                        "In function save_data_to_dataframe(): "
+                        "The 'scaling_factors' entry in the fit parameters "
+                        "does not have the expected structure. "
+                    )
+            else:
+                aux_scaling_factors = [
+                    round(x) for x in \
+                    packed_gain_snr_and_SPE_info[endpoint][channel]["scaling_factors"]
+                ]
+
+                aux_scaling_factors_errors = [
+                    round(float(x), 2) for x in \
+                    packed_gain_snr_and_SPE_info[endpoint][channel]["scaling_factors_errors"]
+                ]
 
             try:
                 aux_SPE_mean_amplitude = \
