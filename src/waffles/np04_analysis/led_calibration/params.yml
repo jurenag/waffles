@@ -60,7 +60,7 @@ baseline_limits:
 # preliminary baseline estimate. The ADC samples
 # that fall into the given range are considered
 # in the definitive baseline computation
-baseliner_std_cut: 3.
+baseliner_std_cut: 2.
 
 # How to compute the baseline out of the selected
 # ADC samples
@@ -100,7 +100,7 @@ alignment_seeds_filepath: './configs/gain_and_alignment_seeds/HPF_at_50_kHz_dfb_
 # correlation alignment. For more information, check the
 # align_waveforms_by_correlation() function
 # docstring.
-SPE_template_lower_limit_wrt_pulse: -50
+SPE_template_lower_limit_wrt_pulse: -100
 
 # This parameter makes a difference only
 # if apply_correlation_alignment is set to True. In that
@@ -109,7 +109,7 @@ SPE_template_lower_limit_wrt_pulse: -50
 # correlation alignment. For more information, check the
 # align_waveforms_by_correlation() function
 # docstring.
-SPE_template_upper_limit_wrt_pulse: 300
+SPE_template_upper_limit_wrt_pulse: 100
 
 # This parameter makes a difference only if
 # apply_correlation_alignment is set to True. In that
@@ -160,7 +160,7 @@ infer_regions_for_fine_selection: true
 # infer_regions_for_fine_selection is set to False.
 # For more information, check the
 # get_fine_selection_regions() function docstring.
-baseline_region_points: 20
+baseline_region_points: 35
 
 # Number of ADC samples to consider on either side of
 # the average pulse peak for the signal region in the
@@ -259,7 +259,7 @@ signal_i_up: # Typical alignment
 # ADC sample in the baseline region deviates from
 # the baseline by more than this value times the
 # baseline STD will be excluded.
-baseline_allowed_dev: 4.
+baseline_allowed_dev: 3.
 
 # Number of allowed baseline-STDs in the signal
 # region. I.e. the waveforms for which at least
@@ -319,7 +319,7 @@ gain_seeds_filepath: './configs/optimal_seeds_dfb_30p.csv'
 # automatically set to [-1.*gain_seed, 5.*gain_seed], and
 # the number of bins in the CH is computed as the domain
 # width (i.e. 6.*gain_seed) multiplied by this parameter.
-bins_per_charge_peak: 7
+bins_per_charge_peak: 9
 
 # Used only if the gain_seeds_filepath parameter
 # is defined. In that case, and if the given CSV lacks the
@@ -388,7 +388,7 @@ std_increment_seed_fallback: 100.
 # (resp. plus) this fraction of the full range of the
 # calibration histogram. For 50% (resp. 40%) PDE, this value
 # should not be greater than 0.05 (resp. 0.04).
-ch_span_fraction_around_peaks: 0.06
+ch_span_fraction_around_peaks: 0.05
 
 # The half-width around the SPE peak mean, expressed in
 # units of the peak's standard deviation, used to select
