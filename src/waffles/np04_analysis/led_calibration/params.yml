@@ -40,17 +40,17 @@ baseline_limits:
         - 100
         - 900
         - 1000
-    2: 
+    2:
         - 0
         - 100
         - 900
         - 1000
-    3: 
+    3:
         - 0
         - 100
         - 900
         - 1000
-    4: 
+    4:
         - 0
         - 100
         - 900
@@ -93,21 +93,21 @@ apply_correlation_alignment: false
 # 'SPE_mean_adcs'
 alignment_seeds_filepath: './configs/gain_and_alignment_seeds/HPF_at_50_kHz_dfb_0.3.csv'
 
-# This parameter makes a difference only 
-# if apply_correlation_alignment is set to True. In that 
-# case, its absolute value gives the number of points to 
-# the left of the SPE pulse which are considered for the 
-# correlation alignment. For more information, check the 
-# align_waveforms_by_correlation() function 
+# This parameter makes a difference only
+# if apply_correlation_alignment is set to True. In that
+# case, its absolute value gives the number of points to
+# the left of the SPE pulse which are considered for the
+# correlation alignment. For more information, check the
+# align_waveforms_by_correlation() function
 # docstring.
 SPE_template_lower_limit_wrt_pulse: -50
 
-# This parameter makes a difference only 
-# if apply_correlation_alignment is set to True. In that 
-# case, its absolute value gives the number of points to 
-# the right of the SPE pulse which are considered for the 
-# correlation alignment. For more information, check the 
-# align_waveforms_by_correlation() function 
+# This parameter makes a difference only
+# if apply_correlation_alignment is set to True. In that
+# case, its absolute value gives the number of points to
+# the right of the SPE pulse which are considered for the
+# correlation alignment. For more information, check the
+# align_waveforms_by_correlation() function
 # docstring.
 SPE_template_upper_limit_wrt_pulse: 300
 
@@ -121,24 +121,23 @@ SPE_template_upper_limit_wrt_pulse: 300
 maximum_allowed_shift: 10
 
 ## Parameters for the average-baseline-std computation
-
-# If True, the baseline std is retrieved 
+# If True, the baseline std is retrieved
 # from external files whose paths are given by the
-# daphne_configuration_database_filepath and the 
-# noise_results_dataframe_filepath input parameters. 
+# daphne_configuration_database_filepath and the
+# noise_results_dataframe_filepath input parameters.
 # If False, the baseline std is computed from the data.
 baseline_std_from_noise_results: true
 
 # Only used if the
-# baseline_std_from_noise_results parameter is set to 
+# baseline_std_from_noise_results parameter is set to
 # True. It is the path to the Daphne configuration JSON
 # file.
 daphne_configuration_database_filepath: '../../np04_utils/DaphneConfigs.json'
 
-# Only used if the 
-# baseline_std_from_noise_results parameter is set to 
-# True. It is the path to the noise results CSV file, 
-# which must contain the columns 'ConfigNumber', 
+# Only used if the
+# baseline_std_from_noise_results parameter is set to
+# True. It is the path to the noise results CSV file,
+# which must contain the columns 'ConfigNumber',
 # 'OfflineCh' and 'RMS'.
 noise_results_dataframe_filepath: '../../np04_data/OfflineCh_RMS_Config_all.csv'
 
@@ -147,9 +146,9 @@ noise_results_dataframe_filepath: '../../np04_data/OfflineCh_RMS_Config_all.csv'
 # a channel basis) for the fine selection cut, based on
 # the average waveform of each channel. If set to True,
 # then the baseline_region_points and the
-# signal_region_half_points parameters must be defined. If 
-# set to False, then those parameters are ignored, but 
-# the baseline_i_low, baseline_i_up and signal_i_up 
+# signal_region_half_points parameters must be defined. If
+# set to False, then those parameters are ignored, but
+# the baseline_i_low, baseline_i_up and signal_i_up
 # parameters must be defined instead.
 infer_regions_for_fine_selection: true
 
@@ -172,13 +171,13 @@ baseline_region_points: 20
 signal_region_half_points: 10
 
 # This parameter is only used if
-# infer_regions_for_fine_selection is set to False. 
-# It is a dictionary whose keys refer to the APA 
-# number, and its values are the ADCs-array iterator 
-# value for the lower limit of the window which is 
-# considered to be the baseline region. If the waveform 
-# deviates from the baseline by more than a certain 
-# amount in this region, it will be excluded from the 
+# infer_regions_for_fine_selection is set to False.
+# It is a dictionary whose keys refer to the APA
+# number, and its values are the ADCs-array iterator
+# value for the lower limit of the window which is
+# considered to be the baseline region. If the waveform
+# deviates from the baseline by more than a certain
+# amount in this region, it will be excluded from the
 # analysis.
 # baseline_i_low: # No aligment
 #     1:
@@ -200,14 +199,14 @@ baseline_i_low: # Typical alignment
     4:
         0
 
-# This parameter is only used if 
-# infer_regions_for_fine_selection is set to False. 
-# It is a dictionary whose keys refer to the APA 
-# number, and its values are the ADCs-array iterator 
-# value for the upper limit of the window which is 
-# considered to be the baseline region. If the waveform 
-# deviates from the baseline by more than a certain 
-# amount in this region, it will be excluded from the 
+# This parameter is only used if
+# infer_regions_for_fine_selection is set to False.
+# It is a dictionary whose keys refer to the APA
+# number, and its values are the ADCs-array iterator
+# value for the upper limit of the window which is
+# considered to be the baseline region. If the waveform
+# deviates from the baseline by more than a certain
+# amount in this region, it will be excluded from the
 # analysis.
 # baseline_i_up: # No alignment
 #     1:
@@ -229,11 +228,11 @@ baseline_i_up: # Typical alignment
     4:
         40
 
-# This parameter is only used if 
-# infer_regions_for_fine_selection is set to False. 
-# It is a dictionary whose keys refer to the APA 
-# number, and its values are the ADCs-array iterator 
-# value for the upper limit of the window where an 
+# This parameter is only used if
+# infer_regions_for_fine_selection is set to False.
+# It is a dictionary whose keys refer to the APA
+# number, and its values are the ADCs-array iterator
+# value for the upper limit of the window where an
 # upper-bound cut to the signal is applied
 # signal_i_up: # No alignment
 #     1:
@@ -318,7 +317,7 @@ gain_seeds_filepath: './configs/optimal_seeds_dfb_30p.csv'
 # Used only if the gain_seeds_filepath parameter is defined.
 # In that case, the calibration histogram (CH) domain is
 # automatically set to [-1.*gain_seed, 5.*gain_seed], and
-# the number of bins in the CH is computed as the domain 
+# the number of bins in the CH is computed as the domain
 # width (i.e. 6.*gain_seed) multiplied by this parameter.
 bins_per_charge_peak: 7
 
@@ -351,7 +350,7 @@ prominence: 0.15 # [0.10 - 0.2]
 # the 'initial_percentage' and 'percentage_step'
 # parameters of the
 # __spot_first_peaks_in_CalibrationHistogram
-# function defined in 
+# function defined in
 # utils/fit_peaks/fit_peaks_utils.py
 initial_percentage: 0.15
 percentage_step: 0.05
@@ -367,10 +366,10 @@ weigh_fit_by_poisson_sigmas: true
 
 # Only used if fit_type is set to 'independent_gaussians'.
 # The number of points to fit on either side
-# of the peak maximum. P.e. setting this to 
+# of the peak maximum. P.e. setting this to
 # 2 will fit 5 points in total: the maximum
 # and 2 points on either side.
-half_points_to_fit: 2 # [2 - 3] 
+half_points_to_fit: 2 # [2 - 3]
 
 # Only used if fit_type is set to 'correlated_gaussians'.
 # It is used when the peak finder predicts that the
@@ -394,7 +393,7 @@ ch_span_fraction_around_peaks: 0.06
 # The half-width around the SPE peak mean, expressed in
 # units of the peak's standard deviation, used to select
 # waveforms for SPE characterization. Waveforms with
-# integrated charge in the range [mean - half_width*std, 
+# integrated charge in the range [mean - half_width*std,
 # mean + half_width*std] are included in the SPE computation.
 half_width_around_peak_in_stds_for_SPE_filtering: 1.0
 
