@@ -130,7 +130,9 @@ class WindowBaseliner(WfAna):
                 "In function WindowBaseliner.analyse(): WARNING: "
                 "No baseline samples were left after applying the "
                 "standard deviation cut. The preliminary baseline "
-                "estimate will be used as the final baseline."
+                "estimate will be used as the final baseline. You "
+                "may consider increasing the value of the std_cut "
+                "parameter to avoid this issue."
             )
             baseline = preliminary_baseline
 
