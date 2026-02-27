@@ -22,7 +22,7 @@ channels_per_run_filepath: './configs/channels_per_run_database.csv'
 
 # Path to a CSV file which lists the channels
 # which should be excluded from the calibration
-excluded_channels_filepath: './configs/excluded_channels_database.csv'
+excluded_channels_filepath: './configs/excluded_channels_csvs/hpf_at_50_kHz/3_with_alignment_with_aligned_templates_dfb_0.3.csv'
 
 # Whether to show the produced figures
 show_figures: false
@@ -82,7 +82,7 @@ upper_limit_wrt_baseline: 40.
 # information, see the
 # align_waveforms_by_correlation() function
 # docstring.
-apply_correlation_alignment: false
+apply_correlation_alignment: true
 
 # If apply_correlation_alignment is set to True,
 # this parameter must be defined. It is the path
@@ -290,18 +290,39 @@ integration_analysis_label: 'integrator'
 ## Parameters for the calibration histogram
 # Used if gain_seeds_filepath is None
 # Bins width in the calibration histogram for each PDE
-calib_histo_bin_width:
+# calib_histo_bin_width: # Typical, no high-pass filter
+#     0.4:
+#         480.
+#     0.45:
+#         571.
+#     0.50:
+#         667.
+
+calib_histo_bin_width: # Typical, with high-pass filter @ 50 kHz
     0.4:
-        480.
+        225.
     0.45:
-        571.
+        268.
     0.50:
-        667.
+        313.
+
+# calib_histo_bin_width: # Typical, with high-pass filter @ 200 kHz
+#     0.4:
+#         160.
+#     0.45:
+#         193.
+#     0.50:
+#         223.
 
 # Used if gain_seeds_filepath is None
 # Lower and upper limits for the calibration histogram
-calib_histo_lower_limit: -5000.
-calib_histo_upper_limit: 15000.
+# calib_histo_lower_limit: -5000. # Typical, no high-pass filter
+calib_histo_lower_limit: -2000. # Typical, with high-pass filter @ 50 kHz
+# calib_histo_lower_limit: -1500. # Typical, with high-pass filter @ 200 kHz
+
+# calib_histo_upper_limit: 15000. # Typical, no high-pass filter
+calib_histo_upper_limit: 10000. # Typical, with high-pass filter @ 50 kHz
+# calib_histo_upper_limit: 5000. # Typical, with high-pass filter @ 200 kHz
 
 # If None, the number of bins and the domain of the charge
 # calibration histogram are computed out of the
@@ -312,7 +333,7 @@ calib_histo_upper_limit: 15000.
 # 'endpoint', 'channel' and 'gain'. The channel-wise gain
 # read from such file is used to compute a channel-wise domain
 # for the charge calibration histograms.
-gain_seeds_filepath: './configs/optimal_seeds_dfb_30p.csv'
+gain_seeds_filepath: './configs/gain_and_alignment_seeds/HPF_at_50_kHz_dfb_0.3.csv'
 
 # Used only if the gain_seeds_filepath parameter is defined.
 # In that case, the calibration histogram (CH) domain is
